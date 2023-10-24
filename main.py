@@ -36,8 +36,8 @@ collagen = '/NAS/yzy/project/MIBI/histocat/Ca2_05_001/Tm169_collagen1_1.tiff'
 # Provide a scale factor to resize the input images to this resolution
 # Ex: Images at 2.308 pixels/micron require a scale_factor of 1.802
 @click.command(context_settings=dict(help_option_names=['-h', '--help']), no_args_is_help=False)
-@click.option("-d", "--dapi", type=click.Path(exists=True), default=dapi, help="the path to dapi")
-@click.option("-c", "--collagen", type=click.Path(exists=True), default=collagen, help = "the path to collagen")
+@click.option("-d", "--dapi", type=click.Path(exists=True), help="the path to dapi")
+@click.option("-c", "--collagen", type=click.Path(exists=True), help="the path to collagen")
 @click.option("-o", "--output", type=click.Path(), help="the output image path")
 @click.option("-m", "--model-dir", type=click.Path(exists=True),
               default=os.path.join(__DIR__, "trained_models"), show_default=True,
@@ -47,9 +47,11 @@ collagen = '/NAS/yzy/project/MIBI/histocat/Ca2_05_001/Tm169_collagen1_1.tiff'
                    "Ex: Images at 2.308 pixels/micron require a scale_factor of 4.160 / 2.308 = 1.802")
 @click.option("--step", type=int, default=40, show_default=True, help="the default step to iter over image")
 @click.option("--batch-size", type=int, default=100, show_default=True, help="batch size")
+@click.option("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu",
+              show_default=True, help="the device to use")
 def main(
         dapi: str, collagen: str, model_dir: str, output: str,
-        scale_factor: float, step: int, batch_size: int
+        scale_factor: float, step: int, batch_size: int, device: str
 ):
     logger.remove()
     logger.add(sys.stderr, level="INFO")
@@ -78,7 +80,7 @@ def main(
 
     # Generate the stiffness predictions
     z_out = STIFMap_generation.generate_STIFMap(dapi, collagen, name, step, models=models,
-                                                mask=False, batch_size=batch_size, save_dir=False)
+                                                mask=False, batch_size=batch_size, save_dir=False, device=device)
     col_colored = STIFMap_generation.collagen_paint(dapi, collagen, z_out, name, step,
                                                     mask=False, scale_percent=100, save_dir=False)
 

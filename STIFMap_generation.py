@@ -62,7 +62,8 @@ class AlexNet(nn.Module):
 
 
 def generate_STIFMap(dapi, collagen, name, step, models,
-                     mask=False, batch_size=100, save_dir=False, **kwargs):  # square_side=224,
+                     mask=False, batch_size=100, device: str = None,
+                     save_dir=False, **kwargs):  # square_side=224,
     """
     Main function for computing STIFMaps
 
@@ -80,7 +81,11 @@ def generate_STIFMap(dapi, collagen, name, step, models,
     Returns: `generate_STIFMap` returns a 3D numpy array of the stiffness predictions for the 'dapi'/'collagen' images for each of the included models
     """
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if not device:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device(device)
+
     logger.info('Device is ' + str(device))
     # For each collagen-DAPI pair, generate the STIFMap for each model provided
 
@@ -281,11 +286,6 @@ def collagen_paint(dapi, collagen, z, name, step,
     then = time.time()
 
     logger.info(name)
-
-    # Get the half step size
-    # half_step = int(step / 2)
-    # and the half side length
-    # half_side = int(square_side / 2)
 
     #############################################################################
     ########################################## Load the STIFFMap
